@@ -1,6 +1,6 @@
 ---
 name: prometheus-diagnostics
-description: Activate whenever PROMETHEUS_METRICS or PROMETHEUS_RANGE_METRICS (Prometheus MCP) sections are present in the diagnostic context. Interprets live PromQL query results for CPU pressure, memory saturation, error rates, and request latency root cause analysis.
+description: Activate whenever PROMETHEUS_MEMORY_INSTANT or PROMETHEUS_MEMORY_RANGE sections are present in the diagnostic context. Interprets live Prometheus memory metrics for memory saturation and leak detection root cause analysis.
 compatibility: Requires Causa diagnostic context collected from a Kind cluster with the Prometheus MCP Server deployed alongside kube-prometheus-stack.
 metadata:
   category: diagnostics
@@ -8,13 +8,18 @@ metadata:
   mcp_server: prometheus-mcp-server
   tools: [query, range_query]
   context_sections:
-    - PROMETHEUS_METRICS
-    - PROMETHEUS_RANGE_METRICS
+    - PROMETHEUS_MEMORY_INSTANT
+    - PROMETHEUS_MEMORY_RANGE
 ---
 
 # Prometheus Diagnostics Skill
 
-Interprets the Prometheus context already collected by Causa. The context contains up to two sections from the Prometheus MCP server — **PROMETHEUS_METRICS** (instant query) and **PROMETHEUS_RANGE_METRICS** (range query) — produced by the `query` and `range_query` tools respectively.
+Interprets the Prometheus memory context already collected by Causa. The context contains two sections from the Prometheus MCP server, both scoped to the exact alerting container via `container="${containerName}"`:
+
+| Context Key | Tool | What it contains |
+|---|---|---|
+| `PROMETHEUS_MEMORY_INSTANT` | `query` | Instant memory working set (bytes) — current active memory in use |
+| `PROMETHEUS_MEMORY_RANGE` | `range_query` | Memory trend over last 5 minutes, 60s step — rising trend indicates a memory leak |
 
 ## What the Context Contains
 
