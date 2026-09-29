@@ -1,6 +1,6 @@
 ---
 name: prometheus-diagnostics
-description: Activate whenever PROMETHEUS_MEMORY_INSTANT or PROMETHEUS_MEMORY_RANGE sections are present in the diagnostic context. Interprets live Prometheus memory metrics for memory saturation and leak detection root cause analysis.
+description: Activate whenever PROMETHEUS_MEMORY_INSTANT or PROMETHEUS_MEMORY_RANGE sections are present in the diagnostic context. Interprets live Prometheus memory metrics anchored to the alert timestamp for memory saturation and leak detection root cause analysis.
 compatibility: Requires Causa diagnostic context collected from a Kind cluster with the Prometheus MCP Server deployed alongside kube-prometheus-stack.
 metadata:
   category: diagnostics
@@ -19,7 +19,7 @@ Interprets the Prometheus memory context already collected by Causa. The context
 | Context Key | Tool | What it contains |
 |---|---|---|
 | `PROMETHEUS_MEMORY_INSTANT` | `query` | Instant memory working set (bytes) — current active memory in use |
-| `PROMETHEUS_MEMORY_RANGE` | `range_query` | Memory trend over last 5 minutes, 60s step — rising trend indicates a memory leak |
+| `PROMETHEUS_MEMORY_RANGE` | `range_query` | Memory trend over the 15 minutes leading up to the alert (`alertTs−15m → alertTs`), 60s step — rising trend indicates a memory leak |
 
 ## What the Context Contains
 
@@ -95,7 +95,7 @@ The container is consuming close to its allowed CPU ceiling. Combined with throt
 The container is close to its OOM boundary. At 100% the kernel sends SIGKILL (exit code 137). Corroborate with POD EVENTS `OOMKilling` and `container_oom_events_total > 0`.
 
 **`container_memory_working_set_bytes` is stable but OOM events occur**
-The baseline footprint fits within the limit, but a transient spike triggers the kill. Look at range query data to see if usage spikes coincide with high request rates or GC events.
+The baseline footprint fits within the limit, but a transient spike triggers the kill. Look at the 15-minute range query data to see if usage spikes coincide with high request rates or GC events within the pre-alert window.
 
 **`container_oom_events_total > 0`**
 Confirms at least one OOM kill. Cross-reference with POD EVENTS `OOMKilling` and POD LOGS for in-process `OutOfMemoryError` vs. silent kernel kill (empty logs).
