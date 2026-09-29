@@ -113,13 +113,17 @@ public class McpRegistry {
 
     /**
      * Resolves {@code ${token}} placeholders against the alert's workload info, this server's
-     * metadata, and any extra chained tokens. Unresolvable tokens become empty strings.
+     * metadata, and any extra chained tokens. Entries whose resolved value is blank are
+     * omitted from the returned map so that optional arguments (e.g. Prometheus
+     * {@code timestamp}, {@code start_time}, {@code end_time}) are absent rather than
+     * sent as empty strings — the MCP server then applies its documented defaults
+     * (e.g. {@code time.Now()}) instead of receiving an invalid empty value.
      */
     public static Map<String, String> resolveArguments(Map<String, String> template, Alert alert,
             McpSettings.ServerConfig config, Map<String, String> extraTokens) {
         Alert.WorkloadInfo workload = alert.getWorkloadInfo();
         java.time.Instant alertTs = alert.getAlertTimestamp();
-        String alertTimestamp        = alertTs != null ? alertTs.toString() : "";
+        String alertTimestamp         = alertTs != null ? alertTs.toString() : "";
         String alertTimestampMinus15m = alertTs != null ? alertTs.minusSeconds(900).toString() : "";
         Map<String, String> resolved = new HashMap<>();
         template.forEach((key, value) -> {
@@ -135,7 +139,11 @@ public class McpRegistry {
             for (Map.Entry<String, Object> meta : config.metadata().entrySet()) {
                 result = result.replace("${metadata." + meta.getKey() + "}", String.valueOf(meta.getValue()));
             }
-            resolved.put(key, result);
+            // Omit entries that resolved to blank — optional MCP arguments (e.g. timestamp
+            // tokens) must be absent rather than empty so the server applies its defaults.
+            if (!result.isBlank()) {
+                resolved.put(key, result);
+            }
         });
         return resolved;
     }
