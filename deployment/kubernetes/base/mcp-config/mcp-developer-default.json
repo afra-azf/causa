@@ -111,18 +111,20 @@
         {
           "name": "query",
           "contextKey": "PROMETHEUS_MEMORY_INSTANT",
-          "description": "Instant memory working set for the alerting container (bytes).",
+          "description": "Instant memory working set for the alerting container at the exact moment the alert fired (bytes).",
           "arguments": {
-            "query": "container_memory_working_set_bytes{namespace=\"${namespace}\",pod=\"${podName}\",container=\"${containerName}\"}"
+            "query": "container_memory_working_set_bytes{namespace=\"${namespace}\",pod=\"${podName}\",container=\"${containerName}\"}",
+            "timestamp": "${alertTimestamp}"
           }
         },
         {
           "name": "range_query",
           "contextKey": "PROMETHEUS_MEMORY_RANGE",
-          "description": "Memory working set trend over the last 5 minutes for the alerting container, 60-second resolution. Rising trend indicates a memory leak.",
+          "description": "Memory working set trend in the 5 minutes leading up to the alert, 60-second resolution. Rising trend indicates a memory leak.",
           "arguments": {
             "query": "container_memory_working_set_bytes{namespace=\"${namespace}\",pod=\"${podName}\",container=\"${containerName}\"}",
-            "start_time": "5m",
+            "start_time": "${alertTimestampMinus5m}",
+            "end_time": "${alertTimestamp}",
             "step": "60s"
           }
         }

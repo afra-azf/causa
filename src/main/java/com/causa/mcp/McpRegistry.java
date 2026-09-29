@@ -118,12 +118,17 @@ public class McpRegistry {
     public static Map<String, String> resolveArguments(Map<String, String> template, Alert alert,
             McpSettings.ServerConfig config, Map<String, String> extraTokens) {
         Alert.WorkloadInfo workload = alert.getWorkloadInfo();
+        java.time.Instant alertTs = alert.getAlertTimestamp();
+        String alertTimestamp       = alertTs != null ? alertTs.toString() : "";
+        String alertTimestampMinus5m = alertTs != null ? alertTs.minusSeconds(300).toString() : "";
         Map<String, String> resolved = new HashMap<>();
         template.forEach((key, value) -> {
             String result = value
                     .replace("${podName}", orEmpty(workload.podName()))
                     .replace("${namespace}", orEmpty(workload.namespace()))
-                    .replace("${containerName}", orEmpty(workload.containerName()));
+                    .replace("${containerName}", orEmpty(workload.containerName()))
+                    .replace("${alertTimestamp}", alertTimestamp)
+                    .replace("${alertTimestampMinus5m}", alertTimestampMinus5m);
             for (Map.Entry<String, String> extra : extraTokens.entrySet()) {
                 result = result.replace("${" + extra.getKey() + "}", orEmpty(extra.getValue()));
             }
