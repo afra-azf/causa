@@ -18,8 +18,8 @@ Interprets the Prometheus memory context already collected by Causa. The context
 
 | Context Key | Tool | What it contains |
 |---|---|---|
-| `PROMETHEUS_MEMORY_INSTANT` | `query` | Instant memory working set (bytes) — current active memory in use |
-| `PROMETHEUS_MEMORY_RANGE` | `range_query` | Memory trend over the 15 minutes leading up to the alert (`alertTs−15m → alertTs`), 60s step — rising trend indicates a memory leak |
+| `PROMETHEUS_MEMORY_INSTANT` | `query` | Instant memory working set (bytes) evaluated at exact alert fire time (`alertTimestamp`). When `alertTimestamp` is null the `timestamp` argument is omitted and Prometheus evaluates at `time.Now()`. |
+| `PROMETHEUS_MEMORY_RANGE` | `range_query` | Memory trend over the 15 minutes leading up to the alert (`alertTs−15m → alertTs`), 60s step — rising trend indicates a memory leak. When `alertTimestamp` is null both `start_time` and `end_time` are omitted and Prometheus uses its default range. |
 
 ## What the Context Contains
 

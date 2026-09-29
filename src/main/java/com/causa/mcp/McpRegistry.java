@@ -123,25 +123,30 @@ public class McpRegistry {
             McpSettings.ServerConfig config, Map<String, String> extraTokens) {
         Alert.WorkloadInfo workload = alert.getWorkloadInfo();
         java.time.Instant alertTs = alert.getAlertTimestamp();
-        String alertTimestamp         = alertTs != null ? alertTs.toString() : "";
-        String alertTimestampMinus15m = alertTs != null ? alertTs.minusSeconds(900).toString() : "";
         Map<String, String> resolved = new HashMap<>();
         template.forEach((key, value) -> {
             String result = value
                     .replace("${podName}", orEmpty(workload.podName()))
                     .replace("${namespace}", orEmpty(workload.namespace()))
-                    .replace("${containerName}", orEmpty(workload.containerName()))
-                    .replace("${alertTimestamp}", alertTimestamp)
-                    .replace("${alertTimestampMinus15m}", alertTimestampMinus15m);
+                    .replace("${containerName}", orEmpty(workload.containerName()));
+            // Timestamp tokens: only substitute when alertTs is non-null.
+            // If alertTs is null the placeholder is left as-is and the entry is dropped
+            // below so the Prometheus MCP server receives no timestamp/start_time/end_time
+            // argument and falls back to its documented default (time.Now()).
+            if (alertTs != null) {
+                result = result
+                        .replace("${alertTimestamp}", alertTs.toString())
+                        .replace("${alertTimestampMinus15m}", alertTs.minusSeconds(900).toString());
+            }
             for (Map.Entry<String, String> extra : extraTokens.entrySet()) {
                 result = result.replace("${" + extra.getKey() + "}", orEmpty(extra.getValue()));
             }
             for (Map.Entry<String, Object> meta : config.metadata().entrySet()) {
                 result = result.replace("${metadata." + meta.getKey() + "}", String.valueOf(meta.getValue()));
             }
-            // Omit entries that resolved to blank — optional MCP arguments (e.g. timestamp
-            // tokens) must be absent rather than empty so the server applies its defaults.
-            if (!result.isBlank()) {
+            // Drop entries that still contain an unresolved ${alertTimestamp*} placeholder
+            // (alertTs was null). All other arguments are always included.
+            if (!result.contains("${alertTimestamp")) {
                 resolved.put(key, result);
             }
         });
