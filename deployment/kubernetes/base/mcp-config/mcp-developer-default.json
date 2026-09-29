@@ -101,7 +101,9 @@
     "prometheus": {
       "type": "streamable-http",
       "url": "http://prometheus-mcp-server:8080/mcp",
-      "headers": {},
+      "headers": {
+        "_comment": "No auth required for in-cluster Kind/plain-Kubernetes deployments. For OpenShift (Thanos Querier), the installer must inject a bearer token: Authorization: Bearer <token>"
+      },
       "optional": true,
       "alwaysAllow": ["query", "range_query", "healthy", "ready"],
       "healthCheck": { "url": "http://prometheus-mcp-server:8080/metrics", "timeoutMs": 15000 },
