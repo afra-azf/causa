@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Map;
 
 /**
- * EvidenceItem - Internal Evidence Model (11 fields).
+ * EvidenceItem - Internal Evidence Model (12 fields).
  *
  * <p>Complete evidence model for storage and debugging. Stores all metadata
  * about evidence collected during validation (PATH A + PATH B).
@@ -12,18 +12,28 @@ import java.util.Map;
  * <p>This is the INTERNAL model - stored in DiagnosticEntity.allEvidence as JSON.
  * For the USER-FACING model, see DiagnosticDetailResponse.Evidence (5 fields).
  *
+ * <p>The prose fields are deliberately distinct: {@link #rawSnippet} is the verbatim text the
+ * source returned, {@link #statement} says what that text shows, and {@link #explanation} argues
+ * why it settles the question. Collapsing any two makes an item look like corroboration of
+ * itself. What the evidence was offered for is carried by the origin — PATH A's assertion id
+ * and PATH B's rule id, both in {@link #metadata} — not restated on every sibling item.
+ *
  * @since 0.0.1
  */
 public record EvidenceItem(
     String id,
-    // Source of evidence (MCP server name or tool identifier). String to support plug-and-play MCP servers.
-    // Examples: "kubernetes-mcp", "prometheus-mcp", "kruize-mcp", "cryostat-mcp", "custom-profiler-mcp"
+    // Source of evidence: the canonical MCP server name as configured in McpConfig.
+    // One of: "kubernetes", "kruize", "cryostat", "quarkus", "async-profiler", "filesystem", "jmx".
+    // String (not enum) to support plug-and-play MCP servers added purely via mcp.json.
     String source,
     EvidenceType type,
     EvidenceStrength strength,
     EvidenceHypothesisAlignment evidenceHypothesisAlignment,
     String rawSnippet,
-    String reasoning,
+    // One line stating only what rawSnippet shows. Null for rule-derived evidence, which has no
+    // narrator to write one.
+    String statement,
+    String explanation,
     double confidence,
     int priority,
     Instant collectedAt,
@@ -127,7 +137,8 @@ public record EvidenceItem(
         private EvidenceStrength strength;
         private EvidenceHypothesisAlignment evidenceHypothesisAlignment;
         private String rawSnippet;
-        private String reasoning;
+        private String statement;
+        private String explanation;
         private double confidence;
         private int priority;
         private Instant collectedAt;
@@ -163,8 +174,13 @@ public record EvidenceItem(
             return this;
         }
 
-        public Builder reasoning(String reasoning) {
-            this.reasoning = reasoning;
+        public Builder statement(String statement) {
+            this.statement = statement;
+            return this;
+        }
+
+        public Builder explanation(String explanation) {
+            this.explanation = explanation;
             return this;
         }
 
@@ -196,7 +212,8 @@ public record EvidenceItem(
                 strength,
                 evidenceHypothesisAlignment,
                 rawSnippet,
-                reasoning,
+                statement,
+                explanation,
                 confidence,
                 priority,
                 collectedAt != null ? collectedAt : Instant.now(),

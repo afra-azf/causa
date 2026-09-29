@@ -87,6 +87,8 @@ CREATE TRIGGER trg_external_config_notify
 -- =============================================================================
 
 ALTER TABLE diagnostics
-    ADD COLUMN all_evidence JSONB;
+    ADD COLUMN IF NOT EXISTS all_evidence JSONB;
 
-COMMENT ON COLUMN diagnostics.all_evidence IS 'Complete evidence items from validation pipeline. Shape: [{"id": "...", "source": "...", "type": "...", "strength": "...", ...}, ...]. Stores all EvidenceItem instances (11-field model) for debugging and audit.';
+COMMENT ON COLUMN diagnostics.all_evidence IS 'Complete evidence items from validation pipeline. Shape: [{"id": "...", "source": "...", "type": "...", "strength": "...", ...}, ...]. Stores all EvidenceItem instances for debugging and audit — see com.causa.core.domain.validation.EvidenceItem for the authoritative shape.';
+
+COMMENT ON COLUMN diagnostics.evidence IS 'User-facing evidence subset. Shape: [{"id": "...", "source": "...", "type": "...", "strength": "...", ...}, ...]. The EvidenceItems chosen from all_evidence for the API response, selected once when the diagnostic completes.';
