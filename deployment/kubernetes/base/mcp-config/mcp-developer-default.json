@@ -120,10 +120,10 @@
         {
           "name": "range_query",
           "contextKey": "PROMETHEUS_MEMORY_RANGE",
-          "description": "Memory working set trend in the 5 minutes leading up to the alert, 60-second resolution. Rising trend indicates a memory leak.",
+          "description": "Memory working set trend in the 15 minutes leading up to the alert, 60-second resolution. Rising trend indicates a memory leak.",
           "arguments": {
             "query": "container_memory_working_set_bytes{namespace=\"${namespace}\",pod=\"${podName}\",container=\"${containerName}\"}",
-            "start_time": "${alertTimestampMinus5m}",
+            "start_time": "${alertTimestampMinus15m}",
             "end_time": "${alertTimestamp}",
             "step": "60s"
           }
