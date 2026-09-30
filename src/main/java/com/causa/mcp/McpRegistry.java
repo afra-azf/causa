@@ -113,24 +113,42 @@ public class McpRegistry {
 
     /**
      * Resolves {@code ${token}} placeholders against the alert's workload info, this server's
-     * metadata, and any extra chained tokens. Unresolvable tokens become empty strings.
+     * metadata, and any extra chained tokens. Entries whose resolved value is blank are
+     * omitted from the returned map so that optional arguments (e.g. Prometheus
+     * {@code timestamp}, {@code start_time}, {@code end_time}) are absent rather than
+     * sent as empty strings — the MCP server then applies its documented defaults
+     * (e.g. {@code time.Now()}) instead of receiving an invalid empty value.
      */
     public static Map<String, String> resolveArguments(Map<String, String> template, Alert alert,
             McpSettings.ServerConfig config, Map<String, String> extraTokens) {
         Alert.WorkloadInfo workload = alert.getWorkloadInfo();
+        java.time.Instant alertTs = alert.getAlertTimestamp();
         Map<String, String> resolved = new HashMap<>();
         template.forEach((key, value) -> {
             String result = value
                     .replace("${podName}", orEmpty(workload.podName()))
                     .replace("${namespace}", orEmpty(workload.namespace()))
                     .replace("${containerName}", orEmpty(workload.containerName()));
+            // Timestamp tokens: only substitute when alertTs is non-null.
+            // If alertTs is null the placeholder is left as-is and the entry is dropped
+            // below so the Prometheus MCP server receives no timestamp/start_time/end_time
+            // argument and falls back to its documented default (time.Now()).
+            if (alertTs != null) {
+                result = result
+                        .replace("${alertTimestamp}", alertTs.toString())
+                        .replace("${alertTimestampMinus15m}", alertTs.minusSeconds(900).toString());
+            }
             for (Map.Entry<String, String> extra : extraTokens.entrySet()) {
                 result = result.replace("${" + extra.getKey() + "}", orEmpty(extra.getValue()));
             }
             for (Map.Entry<String, Object> meta : config.metadata().entrySet()) {
                 result = result.replace("${metadata." + meta.getKey() + "}", String.valueOf(meta.getValue()));
             }
-            resolved.put(key, result);
+            // Drop entries that still contain an unresolved ${alertTimestamp*} placeholder
+            // (alertTs was null). All other arguments are always included.
+            if (!result.contains("${alertTimestamp")) {
+                resolved.put(key, result);
+            }
         });
         return resolved;
     }
