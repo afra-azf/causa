@@ -32,7 +32,6 @@ import com.causa.core.services.RcaPromptBuilder;
 import com.causa.core.services.validation.RcaValidator;
 import com.causa.infrastructure.persistence.mappers.AlertEntityMapper;
 import com.causa.mcp.McpRegistry;
-import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -72,7 +71,6 @@ public class DiagnosticServiceImpl implements DiagnosticService {
     private final PromptSender promptSender;
     private final AppConfig appConfig;
     private final ObjectMapper objectMapper;
-    private final ObjectMapper lenientObjectMapper;
     private final Validator validator;
     private final ExecutorService pipelineExecutor;
     private final Optional<RcaValidator> rcaValidator;
@@ -94,10 +92,6 @@ public class DiagnosticServiceImpl implements DiagnosticService {
         this.promptSender         = promptSender;
         this.appConfig            = appConfig;
         this.objectMapper         = objectMapper;
-        ObjectMapper copy = objectMapper != null ? objectMapper.copy() : null;
-        this.lenientObjectMapper  = copy != null
-                ? copy.configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true)
-                : new ObjectMapper().configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true);
         this.validator            = validator;
         this.pipelineExecutor     = Executors.newCachedThreadPool();
         this.rcaValidator         = rcaValidatorInstance.isResolvable() ?
@@ -395,12 +389,8 @@ public class DiagnosticServiceImpl implements DiagnosticService {
         }
         String jsonText = jsonMatcher.group(1);
 
-        // Parse JSON to RootCauseAnalysis.
-        // Use a pre-configured lenient ObjectMapper that allows unescaped control characters
-        // (e.g. literal newlines inside string values). Some LLM providers (e.g. BOB) emit
-        // multi-line text in JSON string fields using real newline characters (ASCII 10) instead
-        // of the escaped \n sequences required by strict RFC 8259.
-        RootCauseAnalysis rca = lenientObjectMapper.readValue(jsonText, RootCauseAnalysis.class);
+        // Parse JSON to RootCauseAnalysis
+        RootCauseAnalysis rca = objectMapper.readValue(jsonText, RootCauseAnalysis.class);
 
         // Validate the deserialized object
         // Note: Jackson deserialization does NOT trigger Bean Validation annotations automatically
