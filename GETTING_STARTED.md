@@ -61,7 +61,7 @@ Prometheus + Alertmanager
 causa  ←── gathers context from:
     │                - Kubernetes MCP Server (pod, logs, events)
     │                - Quarkus MCP Server (JVM metrics)
-    │                - Prometheus MCP Server (PromQL memory trend queries)
+    │                - Prometheus MCP Server (PromQL memory trend queries — Kind only)
     │                - Jafra (Experimental) MCP Server (JFR analysis)
     │  runs AI analysis via LLM provider
     ▼
