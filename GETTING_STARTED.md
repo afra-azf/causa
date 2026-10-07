@@ -61,6 +61,7 @@ Prometheus + Alertmanager
 causa  ←── gathers context from:
     │                - Kubernetes MCP Server (pod, logs, events)
     │                - Quarkus MCP Server (JVM metrics)
+    │                - Prometheus MCP Server (PromQL memory trend queries)
     │                - Jafra (Experimental) MCP Server (JFR analysis)
     │  runs AI analysis via LLM provider
     ▼
@@ -76,6 +77,7 @@ Developer sees root cause + prioritised remediation steps
 |---|---|---|
 | `causa` | [causaai/causa](https://github.com/causaai/causa) | Quarkus-based AI RCA agent; receives Prometheus alerts and produces diagnoses |
 | `causa-mcp` | [causaai/causa-mcp](https://github.com/causaai/causa-mcp) | MCP server bridging your IDE/agent to the Causa engine |
+| `prometheus-mcp-server` | [tjhop/prometheus-mcp-server](https://github.com/tjhop/prometheus-mcp-server) | Exposes PromQL instant and range queries as MCP tools; provides memory trend data to Causa |
 | `jafra-controller - Experimental` | [bharathappali/jafra-controller](https://github.com/bharathappali/jafra-controller) | Go mutating webhook; injects async-profiler into opted-in Java pods |
 | `jafra-agent - Experimental` | [bharathappali/jafra-agent](https://github.com/bharathappali/jafra-agent) | Rust DaemonSet; streams JFR chunks from nodes to the analyzer |
 | `jafra-analyzer - Experimental` | [bharathappali/jafra-analyzer](https://github.com/bharathappali/jafra-analyzer) | Quarkus service; stores recordings and serves automated JFR analysis |
@@ -174,6 +176,7 @@ When the installer completes, all components are running in the `causa-rca` name
 - Jafra Ecosystem - Experimental (Controller, Agent, Analyzer)
 - Jafra MCP Server
 - Quarkus MCP Server
+- Prometheus MCP Server — exposes PromQL queries to Causa
 - PostgreSQL with pgvector
 - Causa
 - Causa MCP Server
