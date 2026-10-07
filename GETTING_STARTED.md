@@ -168,6 +168,8 @@ When the installer completes, all components are running in the `causa-rca` name
 | `30004` | Quarkus MCP Server |
 | `30005` | Causa MCP Server |
 
+> **Note:** The Prometheus MCP Server is a `ClusterIP`-only service. It is consumed internally by the Causa Backend and does not need to be exposed to your local machine.
+
 **What gets installed on Kind:**
 - Kind cluster + local registry
 - Prometheus stack (kube-prometheus-stack) — for alerting
