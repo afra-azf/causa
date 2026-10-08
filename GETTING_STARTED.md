@@ -77,10 +77,10 @@ Developer sees root cause + prioritised remediation steps
 |---|---|---|
 | `causa` | [causaai/causa](https://github.com/causaai/causa) | Quarkus-based AI RCA agent; receives Prometheus alerts and produces diagnoses |
 | `causa-mcp` | [causaai/causa-mcp](https://github.com/causaai/causa-mcp) | MCP server bridging your IDE/agent to the Causa engine |
-| `prometheus-mcp-server` | [tjhop/prometheus-mcp-server](https://github.com/tjhop/prometheus-mcp-server) | Exposes PromQL instant and range queries as MCP tools; provides memory trend data to Causa |
 | `jafra-controller - Experimental` | [bharathappali/jafra-controller](https://github.com/bharathappali/jafra-controller) | Go mutating webhook; injects async-profiler into opted-in Java pods |
 | `jafra-agent - Experimental` | [bharathappali/jafra-agent](https://github.com/bharathappali/jafra-agent) | Rust DaemonSet; streams JFR chunks from nodes to the analyzer |
 | `jafra-analyzer - Experimental` | [bharathappali/jafra-analyzer](https://github.com/bharathappali/jafra-analyzer) | Quarkus service; stores recordings and serves automated JFR analysis |
+| `prometheus-mcp-server` | [prometheus/prometheus-mcp](https://github.com/prometheus/prometheus-mcp) | Exposes PromQL instant and range queries as MCP tools; provides memory trend data to Causa |
 | `installer` | [causaai/installer](https://github.com/causaai/installer) | Shell installer; deploys the full stack in one command |
 | `causa-demos` | [causaai/causa-demos](https://github.com/causaai/causa-demos) | End-to-end demos with a pre-built chaos workload |
 
@@ -178,7 +178,7 @@ When the installer completes, all components are running in the `causa-rca` name
 - Jafra Ecosystem - Experimental (Controller, Agent, Analyzer)
 - Jafra MCP Server
 - Quarkus MCP Server
-- Prometheus MCP Server — exposes PromQL queries to Causa
+- Prometheus MCP Server
 - PostgreSQL with pgvector
 - Causa
 - Causa MCP Server
